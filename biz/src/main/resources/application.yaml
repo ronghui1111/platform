@@ -1,0 +1,21 @@
+server:
+  port: 10003
+  servlet:
+    context-path: /cpirh-biz
+spring:
+  application:
+    name: biz
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+
+knife4j:
+  # 开启增强配置
+  enable: true
+  setting:
+    enable-dynamic-parameter: true
