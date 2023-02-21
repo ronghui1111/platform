@@ -5,6 +5,7 @@ import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.json.JSONUtil;
 
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 
 /**
@@ -24,7 +25,7 @@ public class CpiRhBase64Utils {
         return Base64Decoder.decodeStr(json, CHARSET);
     }
 
-    public static Object decode(String json, Class clazz) {
+    public static <T> T decode(String json, Class<T> clazz) {
         return JSONUtil.toBean(decode(json), clazz);
     }
 }

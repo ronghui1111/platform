@@ -1,6 +1,7 @@
 package com.cpirh.user.core.interceptor;
 
 import cn.hutool.core.util.StrUtil;
+import com.cpirh.common.bo.LoginDetailBo;
 import com.cpirh.common.constants.AuthConstants;
 import com.cpirh.common.utils.CpiRhBase64Utils;
 import com.cpirh.common.utils.TokenUtils;
@@ -26,7 +27,7 @@ public class HttpRequestTokenInterceptor implements HandlerInterceptor {
             log.info("current user detail:{}", value);
             if (StrUtil.isNotBlank(value)) {
                 log.info("current user detail set in threadLocal", value);
-                TokenUtils.setUserDetail(CpiRhBase64Utils.decode(value, Object.class));
+                TokenUtils.setUserDetail(CpiRhBase64Utils.decode(value, LoginDetailBo.class));
             }
         } catch (Exception e) {
             log.error("get current user detail error", e);

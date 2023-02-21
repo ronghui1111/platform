@@ -1,4 +1,5 @@
 server:
+  base-package: com.cpirh
   port: 10003
   servlet:
     context-path: /cpirh-biz

@@ -1,4 +1,5 @@
 server:
+  base-package: com.cpirh
   port: 10001
   servlet:
     context-path: /cpirh-auth
@@ -13,11 +14,10 @@ spring:
     # Redis数据库索引（默认为0）
     database: 1
     # Redis服务器地址
-    host: 35.174.185.33
+    host: localhost
     # Redis服务器连接端口
     port: 6379
     # Redis服务器连接密码（默认为空）
-    password: 950831
     # 连接超时时间
     timeout: 10s
     pool:

@@ -1,6 +1,7 @@
 package com.cpirh.gateway.filter;
 
 import cn.hutool.core.date.DateUtil;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -37,6 +38,6 @@ public class LogFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -9999;
+        return Integer.MAX_VALUE;
     }
 }

@@ -4,15 +4,18 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.hutool.json.JSONUtil;
 import com.cpirh.auth.feign.BizFeignClient;
+import com.cpirh.common.bo.LoginDetailBo;
 import com.cpirh.common.utils.TokenUtils;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.Objects;
+
+import static com.cpirh.common.constants.AuthConstants.*;
 
 /**
  * @author ronghui
@@ -28,15 +31,25 @@ public class LoginController {
 
     @PostMapping("user/login")
     @ApiOperation("登录接口")
-    public Object login(@RequestParam String userName, @RequestParam String password) {
-        if ("ronghui".equalsIgnoreCase(userName) && "Rh950831.".equalsIgnoreCase(password)) {
-            StpUtil.login(userName);
-            Map<String, Object> userInfo = Maps.newHashMap();
-            userInfo.put("userName", userName);
-            userInfo.put("phone", "15695555302");
-            userInfo.put("name", "戎辉");
-            StpUtil.getTokenSession().set(userName, JSONUtil.toJsonStr(userInfo));
-            //TODO 返回用户信息
+    public Object login(@RequestParam String account, @RequestParam String password) {
+        LoginDetailBo loginInfo = new LoginDetailBo();
+        if ("ronghui".equalsIgnoreCase(account) && "Rh950831.".equalsIgnoreCase(password)) {
+            StpUtil.login(account);
+            loginInfo.setUserId(0);
+            loginInfo.setName("戎辉");
+            loginInfo.setMobile("15695555302");
+            loginInfo.setAccount(account);
+            StpUtil.getTokenSession()
+                    .set(SA_TOKEN_DETAIL_KEY, loginInfo).set(SA_TOKEN_ROLE_KEY, Lists.newArrayList(""))
+                    .set(SA_TOKEN_PERMISSION_KEY, Lists.newArrayList(""));
+            return SaResult.ok("登录成功");
+        } else if ("admin".equalsIgnoreCase(account) && "Rh950831.".equalsIgnoreCase(password)) {
+            StpUtil.login(account);
+            loginInfo.setUserId(1);
+            loginInfo.setName("ADMIN");
+            loginInfo.setMobile("15695555302");
+            loginInfo.setAccount(account);
+            StpUtil.getTokenSession().set(SA_TOKEN_DETAIL_KEY, loginInfo).set(SA_TOKEN_ROLE_KEY, Lists.newArrayList("")).set(SA_TOKEN_PERMISSION_KEY, Lists.newArrayList(""));
             return SaResult.ok("登录成功");
         }
         return SaResult.error("账户或密码错误");
@@ -45,18 +58,13 @@ public class LoginController {
     @GetMapping("user/isLogin")
     @ApiOperation("检测是否登录")
     public SaResult isLogin() {
-        log.info("user:{}", JSONUtil.toJsonStr(TokenUtils.getUserDetail()));
-        if (StpUtil.isLogin()) {
-            return SaResult.data(StpUtil.getTokenInfo());
+        LoginDetailBo userDetail = TokenUtils.getUserDetail();
+        log.info("user:{}", JSONUtil.toJsonStr(userDetail));
+        if (Objects.nonNull(userDetail)) {
+            return SaResult.data(userDetail);
         } else {
             return SaResult.error("未登录");
         }
-    }
-
-    @GetMapping("user/tokenInfo")
-    @ApiOperation("获取token信息")
-    public SaResult tokenInfo() {
-        return SaResult.data(StpUtil.getTokenInfo());
     }
 
     @GetMapping("user/logout")

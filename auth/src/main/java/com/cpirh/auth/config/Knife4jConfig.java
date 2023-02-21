@@ -18,9 +18,9 @@ import springfox.documentation.spring.web.plugins.Docket;
 public class Knife4jConfig {
 
 
-    @Bean(value = "defaultApi2")
-    public Docket defaultApi2() {
-        Docket docket=new Docket(DocumentationType.OAS_30)
+    @Bean
+    public Docket Api3() {
+        Docket docket = new Docket(DocumentationType.OAS_30)
                 .apiInfo(apiInfo())
                 //分组名称
                 .select()
@@ -30,11 +30,11 @@ public class Knife4jConfig {
                 .build();
         return docket;
     }
-    private ApiInfo apiInfo(){
+
+    private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("用户模块接口文档")
                 .description("用户模块接口文档")
-                .termsOfServiceUrl("https://www.baidu.com/")
                 .version("1.0")
                 .build();
     }
