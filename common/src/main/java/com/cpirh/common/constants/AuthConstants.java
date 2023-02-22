@@ -8,10 +8,10 @@ package com.cpirh.common.constants;
  */
 public interface AuthConstants {
     String TOKEN_HEADER = "X-User-Info";
-    String LOGIN_URL = "/**/user/login";
+    String LOGIN_URL = "/user/login";
 
-    String SA_TOKEN_ROLE_KEY="user:roleId";
-    String SA_TOKEN_PERMISSION_KEY ="user:button";
+    String SA_TOKEN_ROLE_KEY = "user:roleId";
+    String SA_TOKEN_PERMISSION_KEY = "user:button";
 
-    String SA_TOKEN_DETAIL_KEY ="user:detail";
+    String SA_TOKEN_DETAIL_KEY = "user:detail";
 }

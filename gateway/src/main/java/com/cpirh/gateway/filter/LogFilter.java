@@ -1,7 +1,6 @@
 package com.cpirh.gateway.filter;
 
 import cn.hutool.core.date.DateUtil;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

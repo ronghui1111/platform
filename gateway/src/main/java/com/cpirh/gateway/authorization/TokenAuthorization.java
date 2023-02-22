@@ -5,30 +5,28 @@ import cn.dev33.satoken.reactor.context.SaReactorSyncHolder;
 import cn.dev33.satoken.reactor.filter.SaReactorFilter;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.dev33.satoken.util.SaResult;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.cpirh.common.bo.LoginDetailBo;
 import com.cpirh.common.constants.AuthConstants;
+import com.cpirh.common.response.ResponseModel;
 import com.cpirh.common.utils.CpiRhBase64Utils;
 import com.cpirh.gateway.config.SaTokenConfig;
+import com.cpirh.gateway.handler.AuthorityRouterHandler;
 import com.cpirh.gateway.handler.GlobalExceptionHandler;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.function.Function;
 
-import static com.cpirh.common.constants.AuthConstants.SA_TOKEN_DETAIL_KEY;
 
 /**
  * @author ronghui
@@ -39,31 +37,19 @@ import static com.cpirh.common.constants.AuthConstants.SA_TOKEN_DETAIL_KEY;
 @Component
 public class TokenAuthorization extends SaReactorFilter {
     @Autowired
+    private AuthorityRouterHandler authorityRouterHandler;
+    @Autowired
     private SaTokenConfig saTokenConfig;
-    public SupplierExt token = () -> {
+    private SupplierExt token = () -> {
     };
-    public SupplierExt auth = () -> {
+    private SupplierExt auth = () -> {
     };
-    public ConsumerExt<String> permit = (obj) -> {
+    private ConsumerExt<String> permit = (obj) -> {
     };
+    private Function<Throwable, ResponseModel> error = (e) -> ResponseModel.error();
 
     public TokenAuthorization setPermit(ConsumerExt<String> permit) {
         this.permit = permit;
-        return this;
-    }
-
-    public TokenAuthorization addInclude(String... paths) {
-        super.getIncludeList().addAll(Arrays.asList(paths));
-        return this;
-    }
-
-    public TokenAuthorization setExcludeList(List<String> pathList) {
-        super.setExcludeList(pathList);
-        return this;
-    }
-
-    public TokenAuthorization addExclude(String... paths) {
-        super.getExcludeList().addAll(Arrays.asList(paths));
         return this;
     }
 
@@ -77,39 +63,37 @@ public class TokenAuthorization extends SaReactorFilter {
         return this;
     }
 
-    private List<String> excludes = Lists.newArrayList("/favicon.ico", "/**/webjars/**", "/**/doc.html", "/**/swagger-resources/**", "/**/v3/api-docs/**");
-
+    public TokenAuthorization setError(Function<Throwable, ResponseModel> error) {
+        this.error = error;
+        return this;
+    }
 
     public TokenAuthorization() {
-        // 拦截所有path
-        this.addInclude("/**")
-                // 指定 [放行路由]
-                .setExcludeList(excludes).addExclude(AuthConstants.LOGIN_URL)
-                // 指定[认证函数]: 每次请求执行
-                .setAuth(StpUtil::checkLogin).setPermit(StpUtil::checkPermission).setToken(this::addTokenHeader)
-                // 指定[异常处理函数]：每次[认证函数]发生异常时执行此函数
+        // 拦截路由
+        this
+                // 校验登录
+                .setAuth(StpUtil::checkLogin)
+                // 校验权限
+                .setPermit(StpUtil::checkPermission)
+                // 将用户信息添加进请求头
+                .setToken(this::addTokenHeader)
+                // 异常处理函数
                 .setError(GlobalExceptionHandler::handlerException);
     }
+
     private void addTokenHeader() {
-        LoginDetailBo loginDetail = StpUtil.getTokenSession().getModel(SA_TOKEN_DETAIL_KEY, LoginDetailBo.class);
+        LoginDetailBo loginDetail = StpUtil.getTokenSession().getModel(AuthConstants.SA_TOKEN_DETAIL_KEY, LoginDetailBo.class);
         if (Objects.nonNull(loginDetail)) {
             String header = CpiRhBase64Utils.encode(loginDetail);
-            log.debug("into addToken2Header, {} : {}", AuthConstants.TOKEN_HEADER, header);
+            log.debug("into addTokenHeader, {} : {}", AuthConstants.TOKEN_HEADER, header);
             ServerWebExchange context = SaReactorSyncHolder.getContext();
-            ServerHttpRequest request = context.getRequest().mutate().header(AuthConstants.TOKEN_HEADER, header).headers((httpHeaders) -> {
+            ServerHttpRequest request = context.getRequest().mutate().headers((httpHeaders) -> {
+                httpHeaders.add(AuthConstants.TOKEN_HEADER, header);
                 httpHeaders.remove(saTokenConfig.getTokenName());
             }).build();
             SaReactorSyncHolder.setContext(context.mutate().request(request).build());
         } else {
             throw new NotBasicAuthException();
-        }
-    }
-
-    private SaResult errors(Throwable e) {
-        if (e instanceof NotLoginException) {
-            return SaResult.get(((NotLoginException) e).getCode(), e.getMessage(), null);
-        } else {
-            return SaResult.error(e.getMessage());
         }
     }
 
@@ -125,17 +109,18 @@ public class TokenAuthorization extends SaReactorFilter {
                 if (StrUtil.isEmpty(url)) {
                     break label68;
                 }
-                SaRouter.match(super.getIncludeList()).notMatch(super.getExcludeList()).check((r) -> {
-                    this.beforeAuth.run(null);
+                List<String> includeList = authorityRouterHandler.getIncludeList();
+                List<String> excludeList = authorityRouterHandler.getExcludeList();
+                SaRouter.match(includeList).notMatch(excludeList).check((r) -> {
                     this.auth.andThen(permit).andThen(token).accept(url);
                 });
                 break label68;
             } catch (StopMatchException var10) {
                 break label68;
             } catch (Throwable var11) {
-                String result = var11 instanceof BackResultException ? var11.getMessage() : JSONUtil.toJsonStr(this.error.run(var11));
-                if (exchange.getResponse().getHeaders().getFirst("Content-Type") == null) {
-                    exchange.getResponse().getHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                String result = var11 instanceof BackResultException ? var11.getMessage() : JSONUtil.toJsonStr(this.error.apply(var11));
+                if (exchange.getResponse().getHeaders().getFirst(HttpHeaders.CONTENT_TYPE) == null) {
+                    exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
                 }
                 var5 = exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(result.getBytes())));
             } finally {
@@ -148,6 +133,7 @@ public class TokenAuthorization extends SaReactorFilter {
             SaReactorSyncHolder.clearContext();
         });
     }
+
 
     interface SupplierExt {
         void run();

@@ -13,11 +13,7 @@ public class TokenUtils {
     private static final ThreadLocal<LoginDetailBo> userDetail = new ThreadLocal<>();
 
     public static LoginDetailBo getUserDetail() {
-        LoginDetailBo o = userDetail.get();
-        if (Objects.isNull(o)) {
-            throw new RuntimeException("未获取到当前用户信息");
-        }
-        return o;
+        return userDetail.get();
     }
 
     public static void setUserDetail(LoginDetailBo o) {

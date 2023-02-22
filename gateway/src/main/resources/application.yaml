@@ -4,9 +4,6 @@ server:
 spring:
   application:
     name: gateway
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
   cloud:
     gateway:
       enabled: true
@@ -31,18 +28,19 @@ spring:
     # Redis服务器连接端口
     port: 6379
     # Redis服务器连接密码（默认为空）
-    # password: 950831
+    #password: 950831
     # 连接超时时间
     timeout: 10s
-    pool:
-      # 连接池最大连接数
-      max-active: 50
-      # 连接池最大阻塞等待时间（使用负值表示没有限制）
-      max-wait: 60000ms
-      # 连接池中的最大空闲连接
-      max-idle: 10
-      # 连接池中的最小空闲连接
-      min-idle: 10
+    lettuce:
+      pool:
+        # 连接池最大连接数
+        max-active: 50
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: 60000ms
+        # 连接池中的最大空闲连接
+        max-idle: 10
+        # 连接池中的最小空闲连接
+        min-idle: 10
 eureka:
   client:
     service-url:

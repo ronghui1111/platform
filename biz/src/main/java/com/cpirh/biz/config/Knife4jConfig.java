@@ -1,13 +1,11 @@
 package com.cpirh.biz.config;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
 /**
  * @author ronghui
@@ -16,26 +14,24 @@ import springfox.documentation.spring.web.plugins.Docket;
  */
 @Configuration
 public class Knife4jConfig {
+    @Bean
+    public GroupedOpenApi userApi() {
+        return GroupedOpenApi.builder().group("业务模块")
+                .pathsToMatch("/**")
+                .packagesToScan("com.cpirh.biz.controller").build();
+    }
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("电投融和平台业务系统接口文档")
+                        .version("1.0")
+                        .description("业务系统接口文档Knife4j文档")
+                        .termsOfService("http://doc.xiaominfo.com")
+                        .license(new License().name("Apache 2.0")
+                                .url("http://doc.xiaominfo.com")));
+    }
 
 
-    @Bean(value = "defaultApi2")
-    public Docket defaultApi2() {
-        Docket docket=new Docket(DocumentationType.OAS_30)
-                .apiInfo(apiInfo())
-                //分组名称
-                .select()
-                //这里指定Controller扫描包路径
-                .apis(RequestHandlerSelectors.basePackage("com.cpirh.biz.controller"))
-                .paths(PathSelectors.any())
-                .build();
-        return docket;
-    }
-    private ApiInfo apiInfo(){
-        return new ApiInfoBuilder()
-                .title("业务模块接口文档")
-                .description("业务模块接口文档")
-                .termsOfServiceUrl("https://www.baidu.com/")
-                .version("1.0")
-                .build();
-    }
 }

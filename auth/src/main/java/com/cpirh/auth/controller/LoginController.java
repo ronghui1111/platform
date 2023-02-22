@@ -6,9 +6,11 @@ import cn.hutool.json.JSONUtil;
 import com.cpirh.auth.feign.BizFeignClient;
 import com.cpirh.common.bo.LoginDetailBo;
 import com.cpirh.common.utils.TokenUtils;
+import com.cpirh.redis.annotation.RedisLock;
+import com.cpirh.authority.annotations.AuthorityIgnore;
 import com.google.common.collect.Lists;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,14 +25,16 @@ import static com.cpirh.common.constants.AuthConstants.*;
  * @date 2023/2/13 17:10
  */
 @RestController
-@Api(tags = "登录相关接口")
+@Tag(name = "登录相关", description = "登录相关接口")
 @Slf4j
 public class LoginController {
     @Autowired
     private BizFeignClient bizFeignClient;
 
-    @PostMapping("user/login")
-    @ApiOperation("登录接口")
+    @PostMapping(LOGIN_URL)
+    @Operation(summary = "登录接口")
+    @AuthorityIgnore
+    @RedisLock(key = "aaaa", identify = "sasasa")
     public Object login(@RequestParam String account, @RequestParam String password) {
         LoginDetailBo loginInfo = new LoginDetailBo();
         if ("ronghui".equalsIgnoreCase(account) && "Rh950831.".equalsIgnoreCase(password)) {
@@ -56,7 +60,7 @@ public class LoginController {
     }
 
     @GetMapping("user/isLogin")
-    @ApiOperation("检测是否登录")
+    @Operation(summary = "检测是否登录")
     public SaResult isLogin() {
         LoginDetailBo userDetail = TokenUtils.getUserDetail();
         log.info("user:{}", JSONUtil.toJsonStr(userDetail));
@@ -68,16 +72,22 @@ public class LoginController {
     }
 
     @GetMapping("user/logout")
-    @ApiOperation("登出接口")
+    @Operation(summary = "登出接口")
     public SaResult logout() {
         StpUtil.logout();
         return SaResult.ok();
     }
 
     @GetMapping("user/userInfo")
-    @ApiOperation("获取userInfo信息")
+    @Operation(summary = "获取userInfo信息")
     public Object userInfo() {
         return bizFeignClient.getUserInfo();
+    }
+
+    @GetMapping("user/exclude")
+    @Operation(summary = "获取userInfo信息")
+    public String exclude() {
+        return "获取userInfo信息";
     }
 
 }

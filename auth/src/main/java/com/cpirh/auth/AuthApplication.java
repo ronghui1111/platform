@@ -1,6 +1,6 @@
 package com.cpirh.auth;
 
-import com.cpirh.user.core.imports.UserCoreImportConfigs;
+import com.cpirh.authority.imports.UserCoreImportConfigs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 @EnableEurekaClient
 @EnableDiscoveryClient
 @EnableFeignClients
-@Import(UserCoreImportConfigs.class)
+@Import({UserCoreImportConfigs.class})
 @Slf4j
 public class AuthApplication {
     public static void main(String[] args) {
