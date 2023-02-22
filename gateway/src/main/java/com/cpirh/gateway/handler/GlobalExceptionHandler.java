@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
         String message = "";
         int code;
         if (e.getType().equals(NotLoginException.NOT_TOKEN)) {
-            code = 401;
+            code = 400;
             message = "用户未登录，请先登录！";
         } else if (e.getType().equals(NotLoginException.INVALID_TOKEN)) {
             code = 401;
